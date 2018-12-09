@@ -291,10 +291,11 @@ def Lib ():
                         cur.execute("select * from borrow where uid = ? and bid = ?",(uid,bid))
                         for i in cur:
                             bdate = i[3]
+                            d = i[4]
                         cur.excute("update table book set ncopies = ? where bid = ?",(ncopies+1,bid))
                         cur.execute("update table borrow set rdate = ? where uid = ? and bid = ?",(c,uid,bid))
                         fined = c-bdate
-                        if fined:
+                        if fined > d:
                             cur.execute("update table borrow set fined = ? where uid = ? and bid = ?",(1,uid,bid))
                         else:
                             cur.execute("update table borrow set fined = ? where uid = ? and bid = ?",(0,uid,bid))
