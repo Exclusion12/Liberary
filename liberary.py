@@ -17,6 +17,13 @@ def Success_200():
 def Success_201():
     messagebox.showinfo('Done', 'user is now deleted')
 
+
+def Error_396():
+	messagebox.showinfo('Error', 'This person already has a copy of this book')
+
+def Error_397():
+	messagebox.showinfo('Error', 'You already have a copy of this book')
+
 def Error_398():
     messagebox.showinfo('Error', 'Borrowing operation is not found')
 
@@ -139,9 +146,12 @@ def prostd(username,role):
                 if ncopies==0:
                     Error_399()
                 else:
-                    cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
-                    cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
-                    con.commit()
+					try:
+                    	cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
+                    	cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
+                    	con.commit()
+					except:
+						Error_397()
         Prostd.destroy()
         borrowing = Tk()
         Bookname = StringVar()
@@ -233,9 +243,12 @@ def Lib ():
                     if ncopies==0:
                         Error_399()
                     else:
-                        cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
-                        cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
-                        con.commit()
+						try:
+                        	cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
+                        	cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
+                        	con.commit()
+						except:
+							Error_396()
 
         lib.destroy()
         borrowing = Tk()
