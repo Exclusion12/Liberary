@@ -146,12 +146,12 @@ def prostd(username,role):
                 if ncopies==0:
                     Error_399()
                 else:
-					try:
-                    	cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
-                    	cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
-                    	con.commit()
-					except:
-						Error_397()
+			try:
+                    		cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
+                    		cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
+                    		con.commit()
+			except:
+				Error_397()
         Prostd.destroy()
         borrowing = Tk()
         Bookname = StringVar()
@@ -243,12 +243,12 @@ def Lib ():
                     if ncopies==0:
                         Error_399()
                     else:
-						try:
-                        	cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
+			try:
+              	        	cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
                         	cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
                         	con.commit()
-						except:
-							Error_396()
+			except:
+				Error_396()
 
         lib.destroy()
         borrowing = Tk()
