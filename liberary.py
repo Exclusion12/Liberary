@@ -1,13 +1,48 @@
-import sqlite3
+import pyodbc
 from tkinter import *
 from tkinter import messagebox
 from datetime import *
-con = sqlite3.connect('liberary.db')
+con = pyodbc.connect('Driver={SQL Server};'
+                      'Server=EXCLUSION;'
+                      'Database=liberary;'
+                      'Trusted_Connection=yes;')
 cur = con.cursor()
 
-#cur.execute("create table users(uid integer primary key autoincrement,username char(50) NOT NULL unique,password char(50) not null,role char(50) not null);")
-#cur.execute("create table book(bid integer primary key autoincrement,name char(50) not null,author char(50) not null,ptime int not null,stime int not null,ncopies int not null);")
-#cur.execute("create table  borrow (id integer primary key autoincrement,uid int not null,bid int not null,bdate date not null ,duration int not null ,rdate date,fined bit, FOREIGN KEY (uid) REFERENCES users,FOREIGN KEY (bid) REFERENCES book);")
+#comitted in sql server management studio
+
+'''
+create table users(
+uid integer identity(1,1) primary key,
+username nvarchar(50) NOT NULL unique,
+password nvarchar(50) not null,
+role nvarchar(50) not null);
+
+
+create table book(bid integer primary key identity(1,1),
+name nvarchar(50) not null,
+author nvarchar(50) not null,
+ptime int not null,
+stime int not null,
+ncopies int not null);
+
+
+create table  borrow (id integer primary key identity(1,1),
+uid int not null,
+bid int not null,
+bdate date not null,
+duration int not null,
+rdate date,fined bit,
+unique(uid,bid),
+FOREIGN KEY (uid) REFERENCES users,
+FOREIGN KEY (bid) REFERENCES book);
+
+insert into users(username,password,role) values('admin','admin','admin')
+
+'''
+
+#cur.execute("create table users(uid integer primary key identity(1,1),username nvarchar(50) NOT NULL unique,password nvarchar(50) not null,role nvarchar(50) not null);")
+#cur.execute("create table book(bid integer primary key identity(1,1),name nvarchar(50) not null,author nvarchar(50) not null,ptime int not null,stime int not null,ncopies int not null);")
+#cur.execute("create table  borrow (id integer primary key identity(1,1),uid int not null,bid int not null,unique(uid,bid),bdate date not null ,duration int not null ,rdate date,fined bit, FOREIGN KEY (uid) REFERENCES users,FOREIGN KEY (bid) REFERENCES book);")
 #cur.execute("insert into users(username,password,role) values('admin','admin','admin')")
 #con.commit()
 
@@ -16,13 +51,6 @@ def Success_200():
 
 def Success_201():
     messagebox.showinfo('Done', 'user is now deleted')
-
-
-def Error_396():
-	messagebox.showinfo('Error', 'This person already has a copy of this book')
-
-def Error_397():
-	messagebox.showinfo('Error', 'You already have a copy of this book')
 
 def Error_398():
     messagebox.showinfo('Error', 'Borrowing operation is not found')
@@ -55,16 +83,16 @@ def login():
     else:
         cur.execute("select * from users where username = ? and password = ?",(user.get(),password.get()))
         for i in cur:
-            if i[3]=="admin":
+            if i.role=="admin":
                 root.destroy()
                 admin()
-            elif i[3]=="student":
+            elif i.role=="student":
                 root.destroy()
-                prostd(i[1],i[3])
-            elif i[3]=="prof":
+                prostd(i.name,i.role)
+            elif i.role=="prof":
                 root.destroy()
-                prostd(i[1],i[3])
-            elif i[3]=="lib":
+                prostd(i.name,i.role)
+            elif i.role=="lib":
                 root.destroy()
                 Lib()
 
@@ -104,14 +132,14 @@ def prostd(username,role):
         listbox[4].insert(END,"  Borrowing duration")
         cur.execute("select * from book")
         for i in cur:
-            listbox[0].insert(END,i[0])
-            listbox[1].insert(END,i[1])
-            listbox[2].insert(END,i[2])
-            listbox[3].insert(END,i[5])
+            listbox[0].insert(END,i.bid)
+            listbox[1].insert(END,i.name)
+            listbox[2].insert(END,i.author)
+            listbox[3].insert(END,i.ncopies)
             if role=="prof":
-                listbox[4].insert(END,i[3])
+                listbox[4].insert(END,i.ptime)
             else:
-                listbox[4].insert(END,i[4])
+                listbox[4].insert(END,i.stime)
         for i in range(5):
             listbox[i].pack(side=LEFT, fill=BOTH)
         scrollbar.config(command=listbox[0].yview)
@@ -130,28 +158,25 @@ def prostd(username,role):
             else:
                 cur.execute("select * from users where username = ? ",(a,))
                 for i in cur:
-                    uid=i[0]
-                    role=i[3]
+                    uid=i.uid
+                    role=i.role
                 if role=="student":
                     cur.execute("select * from book where name = ?",(b,))
                     for i in cur:
-                        bid=i[0]
-                        time=i[4]
+                        bid=i.bid
+                        time=i.stime
                 elif role=="prof":
                     cur.execute("select * from book where name = ?",(b,))
                     for i in cur:
-                        bid=i[0]
-                        time=i[3]
-                        ncopies=i[5]
+                        bid=i.bid
+                        time=i.ptime
+                        ncopies=i.ncopies
                 if ncopies==0:
                     Error_399()
                 else:
-			try:
-                    		cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
-                    		cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
-                    		con.commit()
-			except:
-				Error_397()
+                    cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
+                    cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
+                    con.commit()
         Prostd.destroy()
         borrowing = Tk()
         Bookname = StringVar()
@@ -199,10 +224,10 @@ def Lib ():
         listbox[3].insert(END,"  nofcopies")
         cur.execute("select * from book")
         for i in cur:
-            listbox[0].insert(END,i[0])
-            listbox[1].insert(END,i[1])
-            listbox[2].insert(END,i[2])
-            listbox[3].insert(END,i[5])
+            listbox[0].insert(END,i.bid)
+            listbox[1].insert(END,i.name)
+            listbox[2].insert(END,i.author)
+            listbox[3].insert(END,i.ncopies)
         for i in range(4):
             listbox[i].pack(side=LEFT, fill=BOTH)
         scrollbar.config(command=listbox[0].yview)
@@ -226,29 +251,26 @@ def Lib ():
                 else:
                     cur.execute("select * from users where username = ? ",(a,))
                     for i in cur:
-                        uid=i[0]
-                        role=i[3]
+                        uid=i.uid
+                        role=i.role
                     if role=="student":
                         cur.execute("select * from book where name = ?",(b,))
                         for i in cur:
-                            bid=i[0]
-                            time=i[4]
-                            ncopies=i[5]
+                            bid=i.bid
+                            time=i.stime
+                            ncopies=i.ncopies
                     elif role=="prof":
                         cur.execute("select * from book where name = ?",(b,))
                         for i in cur:
-                            bid=i[0]
-                            time=i[3]
-                            ncopies=i[5]
+                            bid=i.bid
+                            time=i.ptime
+                            ncopies=i.ncopies
                     if ncopies==0:
                         Error_399()
                     else:
-			try:
-              	        	cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
-                        	cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
-                        	con.commit()
-			except:
-				Error_396()
+                        cur.execute("insert into borrow(uid,bid,bdate,duration) values (?,?,?,?)",(uid,bid,c,time))
+                        cur.execute("update book set ncopies = ? where bid = ?",(ncopies-1,bid))
+                        con.commit()
 
         lib.destroy()
         borrowing = Tk()
@@ -292,19 +314,19 @@ def Lib ():
                 else:
                     cur.execute("select * from users where username = ?",(a,))
                     for i in cur:
-                        uid = i[0]
+                        uid = i.uid
                     cur.execute("select * from book where name = ?",(b,))
                     for i in cur:
-                        bid = i[0]
-                        ncopies=i[5]
+                        bid = i.bid
+                        ncopies=i.ncopies
                     cur.execute("select * from borrow where uid = ? and bid = ?",(uid,bid))
                     if cur.fetchone() is None:
                         Error_398()
                     else:
                         cur.execute("select * from borrow where uid = ? and bid = ?",(uid,bid))
                         for i in cur:
-                            bdate = i[3]
-                            d = i[4]
+                            bdate = i.bdate
+                            d=i.duration
                         cur.excute("update table book set ncopies = ? where bid = ?",(ncopies+1,bid))
                         cur.execute("update table borrow set rdate = ? where uid = ? and bid = ?",(c,uid,bid))
                         fined = c-bdate
@@ -366,7 +388,7 @@ def Lib ():
             else:
                 cur.execute("select * from book where name = ? and author = ?",(a,b))
                 for i in cur:
-                    ncopies=i[5]
+                    ncopies=i.ncopies
                 cur.execute("update book set ncopies = ?",(ncopies+e,))
                 con.commit()
         Label(book, text="Book name :", bg="black", fg="white", font="none 20 bold").grid(row=0, column=0,
