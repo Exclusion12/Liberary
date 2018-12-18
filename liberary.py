@@ -88,10 +88,10 @@ def login():
                 admin()
             elif i.role=="student":
                 root.destroy()
-                prostd(i.name,i.role)
+                prostd(i.username,i.role)
             elif i.role=="prof":
                 root.destroy()
-                prostd(i.name,i.role)
+                prostd(i.username,i.role)
             elif i.role=="lib":
                 root.destroy()
                 Lib()
@@ -133,7 +133,7 @@ def prostd(username,role):
         cur.execute("select * from book")
         for i in cur:
             listbox[0].insert(END,i.bid)
-            listbox[1].insert(END,i.name)
+            listbox[1].insert(END,i.username)
             listbox[2].insert(END,i.author)
             listbox[3].insert(END,i.ncopies)
             if role=="prof":
@@ -225,7 +225,7 @@ def Lib ():
         cur.execute("select * from book")
         for i in cur:
             listbox[0].insert(END,i.bid)
-            listbox[1].insert(END,i.name)
+            listbox[1].insert(END,i.username)
             listbox[2].insert(END,i.author)
             listbox[3].insert(END,i.ncopies)
         for i in range(4):
